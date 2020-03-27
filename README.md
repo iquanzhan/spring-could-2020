@@ -179,3 +179,169 @@ dependencyManagement节点是管理依赖版本号的一种方式。可以使子
 
 2.改POM文件
 
+```pom
+<dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
+    </dependencies>
+```
+
+3.yml文件修改
+
+```yml
+server:
+  port: 8001
+
+spring:
+  application:
+    name: cloud-payment-service
+
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.4.188:3306/cloud2020?characterEncoding=utf8&useSSL=false&serverTimezone=UTC&rewriteBatchedStatements=true
+    username: root
+    password: 123456
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.chengxiaoxiao.cloud.entities #所有entity别名所在包
+```
+
+添加数据库：
+
+```sql
+DROP TABLE IF EXISTS `payment`;
+CREATE TABLE `payment` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `serial` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+添加entities
+
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Payment implements Serializable {
+    private Long id;
+    private String serial;
+}
+```
+
+添加CommonResult
+
+```code
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CommonResult<T> {
+    private Integer code;
+    private String msg;
+    private T data;
+}
+```
+
+添加Dao层
+
+```java
+@Mapper
+public interface PaymentDao {
+    int create(Payment payment);
+
+    Payment getPaymentById(@Param("id") Long id);
+}
+```
+
+添加service
+
+```java
+@Service
+public class PaymentServiceImpl implements PaymentService {
+
+    @Resource
+    private PaymentDao paymentDao;
+
+    @Override
+    public int create(Payment payment) {
+        return paymentDao.create(payment);
+    }
+
+    @Override
+    public Payment getPaymentById(Long id) {
+        return paymentDao.getPaymentById(id);
+    }
+}
+
+```
+
+添加mapper.xml文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.chengxiaoxiao.cloud.dao.PaymentDao">
+    <insert id="create" parameterType="Payment" useGeneratedKeys="true" keyProperty="id">
+        insert into payment(serial) values(#{serial})
+    </insert>
+
+
+    <resultMap id="BaseResultMap" type="com.chengxiaoxiao.cloud.entities.Payment">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <id column="serial" property="serial" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="getPaymentById" parameterType="Long" resultMap="BaseResultMap">
+        select * from payment where id=#{id}
+    </select>
+</mapper>
+```
+
+
+
+postman测试
+
+![image-20200327230308941](README.assets/image-20200327230308941.png)
+
+![image-20200327230407741](README.assets/image-20200327230407741.png)
+
