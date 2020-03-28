@@ -1,4 +1,5 @@
 # spring-could-2020
+
 spring cloud学习笔记，基于spring boot 2.新版本，集成Spring Cloud、Spring Cloud Alibaba相关微服务组件。
 
 # 一、版本选择
@@ -35,7 +36,7 @@ https://spring.io/projects/spring-cloud#overview
 
 可以找到spring boot对应的 spring cloud版本推荐。
 
-![image-20200326211634274](README.assets/image-20200326211634274.png)
+![img](assets/00831rSTly1gd8w5g9o4jj30n207h0t0.jpg)
 
 也可访问：https://start.spring.io/actuator/info
 
@@ -55,7 +56,7 @@ Maven：3.5及以上
 
 # 三、总体使用组件
 
-![image-20200326212340703](README.assets/image-20200326212340703.png)
+![img](assets/00831rSTly1gd8w583lzcj30la06w0vb.jpg)
 
 # 四、创建父工程
 
@@ -341,7 +342,145 @@ public class PaymentServiceImpl implements PaymentService {
 
 postman测试
 
-![image-20200327230308941](README.assets/image-20200327230308941.png)
+![img](assets/00831rSTly1gd8w4jpk3pj30qo0bo3zq.jpg)
 
-![image-20200327230407741](README.assets/image-20200327230407741.png)
+![img](assets/00831rSTly1gd8w4t07pqj30qu0cfabb.jpg)
 
+## 5.2 配置热部署
+
+1.添加依赖
+
+```maven
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+```
+
+2.添加plugin，放入父工程
+
+```
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <fork>true</fork>
+                    <addResources>true</addResources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+```
+
+3.开启自动编译
+
+![image-20200328154621833](assets/image-20200328154621833.png)
+
+help->find action ->registry
+
+![image-20200328154729734](assets/image-20200328154729734.png)
+
+## 5.3 微服务消费者
+
+1.建立module
+
+2.添加pom依赖
+
+```pom
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+```
+
+3.建yml
+
+```java
+server:
+  port: 80
+spring:
+  application:
+    name: cloud-consumer-order
+```
+
+4.添加启动类
+
+```
+@SpringBootApplication
+public class OrderMain80 {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderMain80.class, args);
+    }
+}
+```
+
+5.写controller实现调用微服务提供者，实现对其远程调用
+
+使用RestTemplate是一种简单便捷的访问restful的服务类，用它可以远程调用url。
+
+官网地址：https://docs.spring.io/spring-framework/docs/5.2.2.RELEASE/javadoc-api/org/springframework/web/client/RestTemplate.html
+
+添加config，注入进入工程。
+
+```
+@Configuration
+public class ApplicationContextConfig {
+    @Bean
+    public RestTemplate getRestTemplate(){
+        return new RestTemplate();
+    }
+}
+```
+
+> RestTemplate:主要包括getforObject/getForEntity。entity返回了更多的信息，如请求头之类的。forObject主要返回响应体
+
+controller
+
+```
+@RestController
+public class PaymentController {
+
+    private final String PAYMENT_URL = "http://localhost:8001";
+    @Resource
+    private RestTemplate restTemplate;
+
+    @PostMapping("/consumer/payment/create")
+    public CommonResult create(Payment payment) {
+        return restTemplate.postForObject(PAYMENT_URL + "/payment/create", payment, CommonResult.class);
+    }
+
+    @GetMapping("/consumer/payment/{id}")
+    public CommonResult getPayment(@PathVariable("id") Long id) {
+        return restTemplate.getForObject(PAYMENT_URL + "/payment/getPaymentById/" + id, CommonResult.class);
+    }
+}
+```
+
+测试
+
+![image-20200328161159601](assets/image-20200328161159601.png)
+
+![image-20200328161237697](assets/image-20200328161237697.png)
