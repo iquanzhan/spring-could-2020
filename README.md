@@ -484,3 +484,47 @@ public class PaymentController {
 ![image-20200328161159601](assets/image-20200328161159601.png)
 
 ![image-20200328161237697](assets/image-20200328161237697.png)
+
+## 六、工程重构
+
+目前工程中entiyies在每个module中都需要重新建立一份，而这些信息，是通用的。完全可以提出来新建立一个module，让所有module依赖此公用module。
+
+新建cloud-api-common module
+
+添加依赖
+
+```
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+    </dependencies>
+```
+
+拷贝entities文件。
+
+mvn:install
+
+其他项目添加依赖：
+
+```xml
+        <dependency>
+            <groupId>com.chengxiaoxiao.springcloud</groupId>
+            <artifactId>cloud-api-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+```
+
