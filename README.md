@@ -485,7 +485,7 @@ public class PaymentController {
 
 ![image-20200328161237697](assets/image-20200328161237697.png)
 
-## 六、工程重构
+# 六、工程重构
 
 目前工程中entiyies在每个module中都需要重新建立一份，而这些信息，是通用的。完全可以提出来新建立一个module，让所有module依赖此公用module。
 
@@ -526,5 +526,206 @@ mvn:install
             <artifactId>cloud-api-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+```
+
+# 七、Eureka服务注册与发现
+
+## 7.1相关概念
+
+1.什么是服务治理？
+
+传统rpc远程调用中，服务与服务之间依赖和管理比较复杂，所以需要引入服务治理框架，管理他们之间的依赖关系，同时又实现了服务调用、负载均衡、容错等，实现了服务的注册与发现。
+
+2.什么是服务注册与发现？
+
+把服务注册到注册中去，消费者去注册中心上查询注册了哪些服务，服务有多少个实例，哪些是健康的，哪些是不可用，可以称之为服务发现
+
+## 7.2单机版Eureka
+
+### 1.服务端注册中心
+
+1.1建立module cloud-eureka-server7001
+
+1.2添加pom文件依赖
+
+```maven
+ <!--eureka-server-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.chengxiaoxiao.springcloud</groupId>
+            <artifactId>cloud-api-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+```
+
+1.3yml文件
+
+```xml
+server:
+  port: 7001
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false #表示不向注册中心注册自己
+    fetch-registry: false #false表示自己就是注册中心，我的职责就是维护服务实例,并不区检索服务
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/ # 不搭建集群 单机 指向自己
+```
+
+1.4添加启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaMain7001 {
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaMain7001.class,args);
+    }
+}
+```
+
+1.5测试访问：http://localhost:7001
+
+![image-20200329143936618](assets/image-20200329143936618.png)
+
+### 2.客户端集成
+
+把8001集成euarke客户端
+
+1.添加pom依赖
+
+```
+       <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+```
+
+2.改写yml
+
+```java
+eureka:
+  client:
+    register-with-eureka: true #表示向注册中心注册自己 默认为true
+    fetch-registry: true #是否从EurekaServer抓取已有的注册信息，默认为true,单节点无所谓,集群必须设置为true才能配合ribbon使用负载均衡
+    service-url:
+      defaultZone: http://localhost:7001/eureka/
+```
+
+3.改写启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+public class PaymentMain8001 {
+    public static void main(String[] args) {
+        SpringApplication.run(PaymentMain8001.class, args);
+    }
+}
+```
+
+4.测试，先启动server 在启动客户端
+
+![image-20200329151626758](assets/image-20200329151626758.png)
+
+自我保护机制：默认情况下，当某个服务宕机后，euarke server不会立即在注册中心将其删除掉。而是当过一段时间后，到达某个阈值之后，才会将其移除。
+
+## 7.3集群版Eureka
+
+Erreka集群版，主要是server端的互相注册，互相守望。
+
+下面新建一个Euarka server实现。
+
+1.添加依赖
+
+```
+        <!--eureka-server-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        </dependency>
+```
+
+2.添加yml
+
+7001守望7002
+
+```
+server:
+  port: 7001
+
+eureka:
+  instance:
+    hostname: eureka7001.com
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://eureka7002.com:7002/eureka/
+spring:
+  application:
+    name: eureka-server-7001
+```
+
+7002守望7001
+
+```
+server:
+  port: 7002
+eureka:
+  instance:
+    hostname: eureka7002.com
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/
+spring:
+  application:
+    name: eureka-server-7002
+```
+
+3.添加主启动类
+
+7002添加主启动类
+
+```
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaServerMain7002 {
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaServerMain7002.class, args);
+    }
+}
 ```
 

@@ -12,6 +12,8 @@
         <module>cloud-provider-payment8001</module>
         <module>cloud-consumer-order80</module>
         <module>could-api-common</module>
+        <module>cloud-eureka-server7001</module>
+        <module>cloud-eureka-server7002</module>
     </modules>
 
     <!--统一管理jar包和版本-->
