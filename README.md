@@ -746,4 +746,24 @@ eureka:
 
 ![image-20200329155338013](assets/image-20200329155338013.png)
 
-7.4
+## 7.4负载均衡
+
+消费者不能写死提供者IP。
+
+```java
+private final String PAYMENT_URL = "http://CLOUD-PAYMENT-SERVICE";
+```
+
+直接写服务名。并在RestTemplate上开启负载均衡功能
+
+```java
+@Configuration
+public class ApplicationContextConfig {
+    @Bean
+    @LoadBalanced
+    public RestTemplate getRestTemplate() {
+        return new RestTemplate();
+    }
+}
+```
+

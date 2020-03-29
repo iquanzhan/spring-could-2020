@@ -18,7 +18,8 @@ import javax.annotation.Resource;
 @RestController
 public class PaymentController {
 
-    private final String PAYMENT_URL = "http://localhost:8001";
+    private final String PAYMENT_URL = "http://CLOUD-PAYMENT-SERVICE";
+
     @Resource
     private RestTemplate restTemplate;
 
