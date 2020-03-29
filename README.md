@@ -729,3 +729,21 @@ public class EurekaServerMain7002 {
 }
 ```
 
+### 客户端注册进集群
+
+客户端yml配置修改
+
+```
+eureka:
+  client:
+    register-with-eureka: true #表示向注册中心注册自己 默认为true
+    fetch-registry: true #是否从EurekaServer抓取已有的注册信息，默认为true,单节点无所谓,集群必须设置为true才能配合ribbon使用负载均衡
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/
+```
+
+测试：
+
+![image-20200329155338013](assets/image-20200329155338013.png)
+
+7.4
