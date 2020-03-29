@@ -804,3 +804,34 @@ public class ApplicationContextConfig {
 
 ```
 
+## 7.7自我保护机制
+
+简单理解：某个时刻一个微服务不可用了。Eureka不会立即清理，依旧会对该服务的信息做保存。
+
+默认情况下，是开启自我保护机制的。
+
+服务端设置：关闭自我保护机制：
+
+```
+eureka:
+  instance:
+    hostname: eureka7001.com
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://eureka7002.com:7002/eureka/
+      server:
+        enable-self-preservation: false # 关闭自我保护机制 保证不可用服务及时清除
+        eviction-interval-timer-in-ms: 2000
+```
+
+客户端可以设置：
+
+eureka.instance.lease-renewal-interval-in-seconds=30
+
+*Eureka* 客户端向服务端发送心跳的时间间隔 *,* 单位为秒 *(* 默认是 *30* 秒 *)*
+
+eureka.instance.lease-expiration-duration-in-seconds=90
+
+*Eureka* 服务端在收到最后一次心跳后等待时间上限  *,* 单位为秒 *(* 默认是 *90* 秒 *),* 超时剔除服务 
