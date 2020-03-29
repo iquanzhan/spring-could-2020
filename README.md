@@ -767,3 +767,13 @@ public class ApplicationContextConfig {
 }
 ```
 
+## 7.5补充信息
+
+```
+  instance:
+    instance-id: payment8002
+    prefer-ip-address: true
+```
+
+格式化名称、显示IP
+
