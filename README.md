@@ -777,3 +777,30 @@ public class ApplicationContextConfig {
 
 格式化名称、显示IP
 
+## 7.6服务发现
+
+对于注册Eureka里面的微服务可以通过服务发现来获得该服务的信息。
+
+主启动类添加@EnableDiscoveryClient注解，开启服务发现。
+
+```
+    @Resource
+    private DiscoveryClient discoveryClient;
+        @GetMapping("/payment/discovery")
+    public Object discovery() {
+        List<String> services = discoveryClient.getServices();
+
+        for (String service : services) {
+            log.info("**********" + service);
+        }
+
+        //一个微服务下的全部实例
+        List<ServiceInstance> instances = discoveryClient.getInstances("CLOUD-PAYMENT-SERVICE");
+        for (ServiceInstance instance : instances) {
+            log.info(instance.getServiceId() + instance.getHost() + ":" + instance.getPort() + "/" + instance.getUri());
+        }
+        return this.discoveryClient;
+    }
+
+```
+
