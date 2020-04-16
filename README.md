@@ -835,3 +835,20 @@ eureka.instance.lease-renewal-interval-in-seconds=30
 eureka.instance.lease-expiration-duration-in-seconds=90
 
 *Eureka* 服务端在收到最后一次心跳后等待时间上限  *,* 单位为秒 *(* 默认是 *90* 秒 *),* 超时剔除服务 
+
+**属于CAP的AP分支。**
+
+# 八、Zookeeper替代Eureka
+
+ZooKeeper是一个分布式协调工具，可以作为eureka
+
+的替代。使用zk作为服务注册中心。
+
+
+
+
+
+
+
+
+
