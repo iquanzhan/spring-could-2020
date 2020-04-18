@@ -46,7 +46,7 @@ https://spring.io/projects/spring-cloud#overview
 
 Spring Cloud：Hoxton.SR1
 
-Spring Boot：2.2.RELEASE
+Spring Boot：2.2.2.RELEASE
 
 Spring Alibaba Cloud：alibaba 2.1.0.RELEASE
 
@@ -840,15 +840,163 @@ eureka.instance.lease-expiration-duration-in-seconds=90
 
 # 八、Zookeeper替代Eureka
 
-ZooKeeper是一个分布式协调工具，可以作为eureka
+ZooKeeper是一个分布式协调工具，可以作为eureka的替代。使用zk作为服务注册中心。
 
-的替代。使用zk作为服务注册中心。
+暂不总结
 
+# 九、Consul服务注册与发现
 
+## 9.1简介
 
+Consul是一个开源的分布式服务发现与配置系统。
 
+主要有以下特性：
 
+1.服务发现：提供对HTPP/DNS两种发现方式
 
+2.健康检测：支持多种方式，HTTP、TCP、Docker、shell脚本定制化
 
+3.提供KVC存储
 
+4.支持多数据中心
 
+5.可视化界面
+
+## 9.2下载与使用
+
+下载地址：https://www.consul.io/downloads.html
+
+中文文档：https://www.springcloud.cc/spring-cloud-consul.html
+
+### 启动
+
+```
+consul agent -dev
+```
+
+可通过http://localhost:8500访问。
+
+## 9.3新建服务提供者
+
+1.pom
+
+```pom
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+        </dependency>
+```
+
+2.yml
+
+```yml
+server:
+  # consul服务端口
+  port: 8006
+spring:
+  application:
+    name: cloud-provider-payment
+  cloud:
+    consul:
+      # consul注册中心地址
+      host: localhost
+      port: 8500
+      discovery:
+        hostname: 127.0.0.1
+        service-name: ${spring.application.name}
+```
+
+3.启动类：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class PaymentMain8006 {
+    public static void main(String[] args) {
+        SpringApplication.run(PaymentMain8006.class, args);
+    }
+}
+```
+
+## 9.4新建服务提供者
+
+1.pom
+
+```
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+        </dependency>
+```
+
+2.启动类
+
+```yml
+server:
+  port: 80
+spring:
+  application:
+    name: cloud-consumer-order
+  cloud:
+    consul:
+      # consul注册中心地址
+      host: localhost
+      port: 8500
+      discovery:
+        hostname: 127.0.0.1
+        service-name: ${spring.application.name}
+```
+
+3.启动类：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class OrderConsulMain80 {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderConsulMain80.class, args);
+    }
+}
+```
+
+4.配置bean
+
+```java
+@Configuration
+public class ApplicationContextConfig {
+
+    @Bean
+    @LoadBalanced
+    public RestTemplate getTemplate(){
+        return new RestTemplate();
+    }
+}
+```
+
+5.controller
+
+```java
+@RestController
+public class PaymentController {
+    private String url = "http://CLOUD-PROVIDER-PAYMENT";
+
+    @Resource
+    private RestTemplate restTemplate;
+
+    @RequestMapping("consumer/payment/consul")
+    public String cpaymentConsul() {
+        String forObject = restTemplate.getForObject(url + "/payment/consul", String.class);
+        return forObject;
+    }
+}
+```
+
+# 十、CAP理论
+
+C:Consistency（强一致性）
+
+A：Availablity（可用性）
+
+P:Parttition tolerance（分区容错性）
+
+CAP理论关注的粒度时数据而非系统整体架构
