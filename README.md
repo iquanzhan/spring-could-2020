@@ -1000,3 +1000,32 @@ A：Availablity（可用性）
 P:Parttition tolerance（分区容错性）
 
 CAP理论关注的粒度时数据而非系统整体架构
+
+
+
+AP：eureka
+
+CP：Zookeeper Consul
+
+
+
+# 十一、Ribbon负载均衡调用
+
+## 11.1简介
+
+Spring Cloud Ribbon是基于Netflix Ribbon实现的一套客户端负载均衡工具。主要是提供客户端的负载均衡和服务调用。
+
+官网地址：https://github.com/Netflix/ribbon/wiki/Getting-Started
+
+**但是很遗憾，Ribbon已进入维护模式。未来可以考虑使用SpringCloud loadBalancer替代方案**
+
+## 11.2可以用来做什么
+
+负载均衡：将用户的请求平均分配到多个服务上，从而达到系统的高可用。常见的负载均衡软件有Nginx、LVS、硬件F5等。
+
+Ribbon和Nginx负载均衡的区别：
+
+Nginx是服务器端的负载均衡，客户端的所有请求都会交给服务器端的Nginx。由Nginx实现转发请求。即负载均衡由服务器端实现的。
+
+Ribbon时本地负载均衡，在调用服务接口时，会在注册中心上获取服务列表混存到JVM本地实现负载均衡的调用远程服务。
+
