@@ -1029,3 +1029,68 @@ Nginx是服务器端的负载均衡，客户端的所有请求都会交给服务
 
 Ribbon时本地负载均衡，在调用服务接口时，会在注册中心上获取服务列表混存到JVM本地实现负载均衡的调用远程服务。
 
+架构说明：
+
+![image-20200418171914125](assets/image-20200418171914125.png)
+
+Rabbin包无需单独引入。已经在Eureka中包含
+
+## Ribbon核心组件IRule
+
+根据特定的算法从服务器列表中选取一个要访问的对象服务
+
+1.com.netflix.loadbalancer.RoundRobinRule 轮询
+
+2.com.netflix.loadbalancer.RandomRule 随机
+
+3.com.netflix.loadbalancer.RetryRule 先按照RoundRobinRule的策略获取服务,如果获取服务失败则在指定时间内进行重试,获取可用的服务
+
+4.WeightedResponseTimeRule 对RoundRobinRule的扩展,响应速度越快的实例选择权重越多大,越容易被选择
+
+5.BestAvailableRule 会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务,然后选择一个并发量最小的服务
+
+6.AvailabilityFilteringRule 先过滤掉故障实例,再选择并发较小的实例
+
+7.ZoneAvoidanceRule 默认规则,复合判断server所在区域的性能和server的可用性选择服务器
+
+## 修改负载均衡规则
+
+```java
+@Configuration
+public class MySelfRule {
+
+    @Bean
+    public IRule myRule() {
+        // 定义为随机
+        return new RoundRobinRule();
+    }
+}
+
+```
+
+ 启动类添加：
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+@RibbonClient(name = "CLOUD-PAYMENT-SERVICE", configuration = MySelfRule.class)
+public class OrderMain80 {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderMain80.class, args);
+    }
+}
+```
+
+## 负载均衡算法
+
+
+
+# 十二、RestTmplate
+
+![image-20200418172029370](assets/image-20200418172029370.png)
+
+![image-20200418172039660](assets/image-20200418172039660.png)
+
+![image-20200418172043634](assets/image-20200418172043634.png)
+
+# 十三、OpenFeign服务接口调用
