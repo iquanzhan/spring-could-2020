@@ -23,3 +23,7 @@
 hs_err_pid*
 
 target/
+/software
+/cloud-provider-payment8002/*.iml
+/cloud-consumer-order80/*.iml
+*.iml

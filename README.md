@@ -1007,7 +1007,9 @@ AP：eureka
 
 CP：Zookeeper Consul
 
+![image-20200419160556200](assets/image-20200419160556200.png)
 
+![image-20200419160636686](assets/image-20200419160636686.png)
 
 # 十一、Ribbon负载均衡调用
 
@@ -1094,3 +1096,278 @@ public class OrderMain80 {
 ![image-20200418172043634](assets/image-20200418172043634.png)
 
 # 十三、OpenFeign服务接口调用
+
+## 简介
+
+OpenFeign是一个声明式Web服务客户端，只需要创建一个接口，即可实现Web远程调用，让编写Web服务客户端变得简单
+
+官网：https://github.com/spring-cloud/spring-cloud-openfeign
+
+### Feign和Open Feign的区别：
+
+![image-20200419160849350](assets/image-20200419160849350.png)
+
+## Open Feign使用步骤
+
+1.pom
+
+```
+        <!--openfeign-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+```
+
+2.yml
+
+```yml
+server:
+  port: 80
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka,http://eureka7002.com:7002/eureka
+```
+
+3.主启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+@EnableFeignClients
+public class OrderFeignMain80 {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderFeignMain80.class, args);
+    }
+}
+```
+
+4.业务层
+
+```java
+@FeignClient("CLOUD-PAYMENT-SERVICE")
+public interface PaymentFeignService {
+
+    @GetMapping("/payment/getPaymentById/{id}")
+    public CommonResult getPaymentById(@PathVariable("id") long id);
+}
+```
+
+5.controller
+
+```java
+@RestController
+public class OrderFeignController {
+    @Resource
+    private PaymentFeignService paymentFeignService;
+
+    @GetMapping(value = "/consumer/payment/get/{id}",produces = "application/json;charset=UTF-8")
+    public CommonResult getPaymentById(@PathVariable("id") long id) {
+        return paymentFeignService.getPaymentById(id);
+    }
+}
+```
+
+## OpenFeign超时控制
+
+OpenFeign默认等待一秒钟，超时后报错。
+
+超时控制：
+
+```yml
+server:
+  port: 80
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka,http://eureka7002.com:7002/eureka
+# 设置feign客户端超时时间(OpenFeign默认支持ribbon)
+ribbon:
+  # 指的是建立连接所用的时间,适用于网络状态正常的情况下,两端连接所用的时间
+  ReadTimeout: 5000
+  # 指的是建立连接后从服务器读取到可用资源所用的时间
+  ConnectTimeout: 5000
+```
+
+## OpenFeign日志打印功能
+
+OpenFeign支持日志打印功能，可以让我们看到HTTP调用的具体细节。
+
+日志级别：
+
+![image-20200419164105824](assets/image-20200419164105824.png)
+
+配置
+
+```java
+@Configuration
+public class FeignConfig {
+
+    /**
+     * feignClient配置日志级别
+     *
+     * @return
+     */
+    @Bean
+    public Logger.Level feignLoggerLevel() {
+        // 请求和响应的头信息,请求和响应的正文及元数据
+        return Logger.Level.FULL;
+    }
+}
+
+```
+
+yml开启日志
+
+```yml
+server:
+  port: 80
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka,http://eureka7002.com:7002/eureka
+# 设置feign客户端超时时间(OpenFeign默认支持ribbon)
+ribbon:
+  # 指的是建立连接所用的时间,适用于网络状态正常的情况下,两端连接所用的时间
+  ReadTimeout: 5000
+  # 指的是建立连接后从服务器读取到可用资源所用的时间
+  ConnectTimeout: 5000
+logging:
+  level:
+    # feign日志以什么级别监控哪个接口
+    com.atguigu.springcloud.service.PaymentFeignService: debug
+```
+
+# 十四、Hystrix熔断器
+
+## 概述：
+
+![image-20200419164322429](assets/image-20200419164322429.png)
+
+能干什么：
+
+服务降级
+
+服务熔断
+
+接近实时的监控
+
+官网：https://github.com/Netflix/hystrix/wiki
+
+**但是Hystrix宣布停更进入维护状态。**
+
+## 重要概念
+
+### 1.服务降级
+
+不让客户端等待，可以立即返回一个有好的提示。
+
+哪些情况会触发降级：
+
+1.程序运行异常
+
+2.超时
+
+3.服务熔断触发降级
+
+4.线程池/信号量也会导致服务降级
+
+### 2.服务熔断
+
+类似保险丝，当服务导入到最大的服务访问时，直接拒绝访问，然后调用服务降级
+
+### 3.服务限流
+
+秒杀高并发等操作，严禁一窝蜂的过来拥挤，大家排队，一秒钟处理多少个，有序进行。
+
+## 使用
+
+1.pom
+
+```maven
+        <!--hystrix-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+        </dependency>
+```
+
+2.yml
+
+```yml
+server:
+  port: 8001
+spring:
+  application:
+    name: cloud-provider-hystrix-payment
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka,http://eureka7002.com:7002/eureka
+```
+
+3.主启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+public class PaymentHystrixMain8001 {
+    public static void main(String[] args) {
+        SpringApplication.run(PaymentHystrixMain8001.class, args);
+    }
+}
+```
+
+
+
+tomcat的默认工作线程数被打满了,没有多余的线程来分解压力和处理
+
+## 新建80加入，远程访问8001
+
+
+
+
+
+# 十五、Jmenter
+
+### Jmeter设置为中文
+
+找到jmeter下的bin目录，打开jmeter.properties 文件
+
+第三十七行修改为
+
+language=zh_CN
+
+去掉前面的#，**以后打开就是中文界面了**
+
+## 添加线程组
+
+开启Jmeter,来20000个并发压死8001,20000个请求都去访问paymentInfo_TimeOut服务
+
+![image-20200419170311899](assets/image-20200419170311899.png)
+
+添加HTTP请求
+
+![image-20200419170552166](assets/image-20200419170552166.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
