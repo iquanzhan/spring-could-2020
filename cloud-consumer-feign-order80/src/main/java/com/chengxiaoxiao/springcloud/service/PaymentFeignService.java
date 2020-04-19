@@ -1,6 +1,6 @@
 package com.chengxiaoxiao.springcloud.service;
 
-import com.chengxiaoxiao.cloud.entities.CommonResult;
+import com.chengxiaoxiao.springcloud.entities.CommonResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;

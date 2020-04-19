@@ -1,6 +1,6 @@
 package com.chengxiaoxiao.springcloud.controller;
 
-import com.chengxiaoxiao.cloud.entities.CommonResult;
+import com.chengxiaoxiao.springcloud.entities.CommonResult;
 import com.chengxiaoxiao.springcloud.service.PaymentFeignService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -1,4 +1,4 @@
-package com.chengxiaoxiao.cloud.entities;
+package com.chengxiaoxiao.springcloud.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

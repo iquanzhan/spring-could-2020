@@ -321,13 +321,13 @@ public class PaymentServiceImpl implements PaymentService {
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.chengxiaoxiao.cloud.dao.PaymentDao">
+<mapper namespace="PaymentDao">
     <insert id="create" parameterType="Payment" useGeneratedKeys="true" keyProperty="id">
         insert into payment(serial) values(#{serial})
     </insert>
 
 
-    <resultMap id="BaseResultMap" type="com.chengxiaoxiao.cloud.entities.Payment">
+    <resultMap id="BaseResultMap" type="Payment">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <id column="serial" property="serial" jdbcType="VARCHAR"/>
     </resultMap>
@@ -1327,15 +1327,55 @@ public class PaymentHystrixMain8001 {
 }
 ```
 
-
+使用Jemeter进行压测。再用浏览器打开，会陷入无限等待中。
 
 tomcat的默认工作线程数被打满了,没有多余的线程来分解压力和处理
 
 ## 新建80加入，远程访问8001
 
+1.pom
 
+```
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <!--eureka client-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        </dependency>
+```
 
+2.application.yml
 
+```yml
+server:
+  port: 81
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka,http://eureka7002.com:7002/eureka
+```
+
+3.启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+@EnableFeignClients
+public class OrderHystrixMain80 {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderHystrixMain80.class, args);
+    }
+}
+```
+
+此时用jmeter压测8001.再用8001访问ok的服务（访问出错）。
+
+80访问timeout。
 
 # 十五、Jmenter
 
