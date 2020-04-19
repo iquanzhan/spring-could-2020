@@ -1,6 +1,6 @@
-package com.chengxiaoxiao.cloud.dao;
+package com.chengxiaoxiao.springcloud.dao;
 
-import com.chengxiaoxiao.cloud.entities.Payment;
+import com.chengxiaoxiao.springcloud.entities.Payment;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

@@ -1,7 +1,6 @@
-package com.chengxiaoxiao.cloud.service;
+package com.chengxiaoxiao.springcloud.service;
 
-import com.chengxiaoxiao.cloud.entities.Payment;
-import org.apache.ibatis.annotations.Param;
+import com.chengxiaoxiao.springcloud.entities.Payment;
 
 /**
  * @Author: Cheng XiaoXiao  (🍊 ^_^ ^_^)

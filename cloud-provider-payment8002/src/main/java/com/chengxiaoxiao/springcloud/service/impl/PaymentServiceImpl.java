@@ -1,8 +1,9 @@
-package com.chengxiaoxiao.cloud.service.impl;
+package com.chengxiaoxiao.springcloud.service.impl;
 
-import com.chengxiaoxiao.cloud.dao.PaymentDao;
-import com.chengxiaoxiao.cloud.entities.Payment;
-import com.chengxiaoxiao.cloud.service.PaymentService;
+
+import com.chengxiaoxiao.springcloud.dao.PaymentDao;
+import com.chengxiaoxiao.springcloud.entities.Payment;
+import com.chengxiaoxiao.springcloud.service.PaymentService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
